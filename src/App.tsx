@@ -8,6 +8,7 @@ import AuthLayout from "./components/layout/AuthLayout";
 import HomePage from "./pages/home";
 import { LoginPage, RegisterPage } from "./pages/auth";
 import OnboardingPage from "./pages/onboarding";
+import ContactPage from "./pages/contact";
 import PageNotFound from "./pages/PageNotFound";
 import ProtectedRoute from "./pages/ProtectedRoute";
 
@@ -22,6 +23,7 @@ export default function App() {
       <Route path="/onboarding" element={<Outlet />}>
         <Route path="walkthrough" element={<OnboardingPage />} />
       </Route>
+      <Route path="/contact" element={<ContactPage />} />
       <Route path="*" element={<PageNotFound />} /> 
     </Routes>
   );

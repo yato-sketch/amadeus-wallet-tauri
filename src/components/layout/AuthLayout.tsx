@@ -46,7 +46,7 @@ export default function AuthLayout() {
     };
 
     const contactSupport = () => {
-        navigate("/support");
+        navigate("/contact");
     };
 
     return (
