@@ -14,3 +14,21 @@ export const passwordSchema = z
 export const loginSchema = z.object({
     password: passwordSchema,
 });
+
+export const createPasswordSchema = z
+    .object({
+        password: passwordSchema,
+        confirmPassword: z.string().min(1, "Please confirm your password"),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+        message: "Passwords do not match",
+        path: ["confirmPassword"],
+    });
+
+export type CreatePasswordForm = z.infer<typeof createPasswordSchema>;
+
+export const importWalletSchema = createPasswordSchema.extend({
+    privateKey: z.string().min(1, "Private key is required"),
+});
+
+export type ImportWalletForm = z.infer<typeof importWalletSchema>;
