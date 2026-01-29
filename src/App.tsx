@@ -1,52 +1,25 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
-import { Button } from "@/components/ui/button";
+import { Outlet, Route, Routes } from "react-router-dom";
 import "./App.css";
 
-function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+// Pages
+import HomePage from "./pages/home";
+import { LoginPage, RegisterPage } from "./pages/auth";
+import OnboardingPage from "./pages/onboarding";
+import PageNotFound from "./pages/PageNotFound";
+import ProtectedRoute from "./pages/ProtectedRoute";
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
-
+export default function App() {
   return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
-
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <Button type="submit">Greet</Button>
-      </form>
-      <p>{greetMsg}</p>
-    </main>
+    <Routes>
+      <Route path="/" index element={<ProtectedRoute children={<HomePage />} disableOnboarding={false} />} />
+      <Route path="/auth" element={<Outlet />}>
+        <Route path="login" element={<LoginPage />} />
+        <Route path="register" element={<RegisterPage />} />
+      </Route>
+      <Route path="/onboarding" element={<Outlet />}>
+        <Route path="walkthrough" element={<OnboardingPage />} />
+      </Route>
+      <Route path="*" element={<PageNotFound />} /> 
+    </Routes>
   );
 }
-
-export default App;
