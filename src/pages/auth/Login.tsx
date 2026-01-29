@@ -19,16 +19,13 @@ import {
     WalletIcon,
 } from "lucide-react";
 
-// Assets
-import DarkLogo from "@/assets/amadeus-logo-dark.svg";
-
 // Schemas
 import { loginSchema } from "@/lib/schemas";
 
 type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-    const [showPassword, setShowPassword] = useState(false);
+    const [showPassword, setShowPassword] = useState<boolean>(false);
 
     const {
         handleSubmit,
@@ -60,16 +57,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="flex h-screen flex-col items-center justify-center">
-            <div className="mb-6 flex flex-col items-center gap-2 select-none">
-                <img
-                    src={DarkLogo}
-                    alt="Amadeus Logo"
-                    className="h-36 w-36 object-contain"
-                />
-                <h1 className="text-3xl font-bold">Amadeus Protocol</h1>
-            </div>
-
+        <>
             <form
                 onSubmit={handleSubmit(onSubmit)}
                 className="w-full max-w-sm space-y-4 px-4"
@@ -120,6 +108,6 @@ export default function LoginPage() {
                     <p>Don't have a wallet? <Link to="/auth/register" className="text-white hover:text-white/80 hover:underline">Create one</Link> now</p>
                 </div>
             </form>
-        </div>
+        </>
     );
 }

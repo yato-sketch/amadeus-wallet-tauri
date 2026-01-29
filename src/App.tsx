@@ -1,6 +1,9 @@
 import { Outlet, Route, Routes } from "react-router-dom";
 import "./App.css";
 
+// Layouts
+import AuthLayout from "./components/layout/AuthLayout";
+
 // Pages
 import HomePage from "./pages/home";
 import { LoginPage, RegisterPage } from "./pages/auth";
@@ -12,7 +15,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" index element={<ProtectedRoute children={<HomePage />} disableOnboarding={false} />} />
-      <Route path="/auth" element={<Outlet />}>
+      <Route path="/auth" element={<AuthLayout />}>
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
       </Route>
