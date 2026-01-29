@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 // Shadcn UI
 import { Badge } from "@/components/ui/badge"
@@ -17,6 +18,7 @@ import { CreatePrivateKey, ImportPrivateKey } from "@/components/auth";
 import { useAuthLayoutContext } from "@/components/layout/AuthLayout";
 
 // Assets
+import { ArrowLeftIcon } from "lucide-react";
 import CreatePrivateKeyPng from "@/assets/auth/create-private-key.png";
 import ImportPrivateKeyPng from "@/assets/auth/import-private-key.png";
 
@@ -44,6 +46,7 @@ type Step = "intro" | "create-from-private-key" | "import-from-private-key";
 
 export default function RegisterPage() {
     const [step, setStep] = useState<Step>("intro");
+    const navigate = useNavigate();
     const setHideBranding = useAuthLayoutContext()?.setHideBranding;
 
     useEffect(() => {
@@ -52,7 +55,17 @@ export default function RegisterPage() {
     }, [step, setHideBranding]);
 
     return (
-        <div className="w-full flex items-center justify-center gap-4">
+        <div className="relative w-full flex items-center justify-center gap-4">
+            {step === "intro" && (
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="fixed left-4 top-4 z-20 gap-2"
+                    onClick={() => navigate("/auth/login")}
+                >
+                    <ArrowLeftIcon className="h-4 w-4" />
+                </Button>
+            )}
             {step === "intro" && options.map((option) => (
                 <Card key={option.id} className="group relative w-full max-w-sm pt-0 overflow-hidden select-none">
                     <div className="overflow-hidden rounded-t-xl">
