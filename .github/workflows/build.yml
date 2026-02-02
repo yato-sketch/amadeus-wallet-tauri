@@ -109,32 +109,49 @@ jobs:
             git push origin "$TAG"
           fi
 
-      # Delete existing release (keeps tag). Avoids "delete release asset" 404 when overwriting.
+      # Delete existing release (keeps tag). Use API so we never call "delete release asset" (which 404s).
       - name: Delete existing release for tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: v${{ vars.VITE_APP_VERSION }}
+          API_HEADERS: "Accept: application/vnd.github+json; X-GitHub-Api-Version: 2022-11-28"
         run: |
-          RELEASE_ID=$(curl -sS -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/${{ github.repository }}/releases/tags/${TAG}" | jq -r '.id // empty')
-          if [ -n "$RELEASE_ID" ]; then
-            curl -sS -X DELETE -H "Authorization: token $GITHUB_TOKEN" \
-              "https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID"
+          RESP=$(curl -sS -w "\n%{http_code}" -H "Authorization: Bearer $GITHUB_TOKEN" -H "$API_HEADERS" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/${TAG}")
+          HTTP_BODY=$(echo "$RESP" | head -n -1)
+          HTTP_CODE=$(echo "$RESP" | tail -n 1)
+          if [ "$HTTP_CODE" = "200" ]; then
+            RELEASE_ID=$(echo "$HTTP_BODY" | jq -r '.id // empty')
+            if [ -n "$RELEASE_ID" ]; then
+              curl -sS -f -X DELETE -H "Authorization: Bearer $GITHUB_TOKEN" -H "$API_HEADERS" \
+                "https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID" || true
+            fi
           fi
 
-      - name: Publish Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ vars.VITE_APP_VERSION }}
-          name: ${{ vars.VITE_APP_NAME }} v${{ vars.VITE_APP_VERSION }}
-          body: |
-            **Build** from commit ${{ github.sha }}
-            Triggered by push to `main`.
-          files: |
-            artifacts/linux/**/*
-            artifacts/windows/**/*
-            artifacts/macos/**/*
-          draft: false
-          make_latest: true
+      # Create release and upload assets via API only (no third-party action, no "delete asset" calls).
+      - name: Create release and upload assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: v${{ vars.VITE_APP_VERSION }}
+          API_HEADERS: "Accept: application/vnd.github+json; X-GitHub-Api-Version: 2022-11-28"
+        run: |
+          BODY="**Build** from commit ${{ github.sha }}
+          Triggered by push to \`main\`."
+          RELEASE_JSON=$(jq -n \
+            --arg tag_name "$TAG" \
+            --arg name "${{ vars.VITE_APP_NAME }} $TAG" \
+            --arg body "$BODY" \
+            '{tag_name:$tag_name,name:$name,body:$body,draft:false,make_latest:true}')
+          CREATED=$(curl -sS -f -X POST -H "Authorization: Bearer $GITHUB_TOKEN" -H "$API_HEADERS" \
+            "https://api.github.com/repos/${{ github.repository }}/releases" \
+            -d "$RELEASE_JSON")
+          UPLOAD_URL=$(echo "$CREATED" | jq -r '.upload_url | split("{")[0]')
+          # Upload only installer/archive assets (not every file in bundle)
+          while IFS= read -r -d '' path; do
+            name=$(echo "$path" | sed 's|^artifacts/||' | tr '/' '-')
+            echo "Uploading $name..."
+            curl -sS -f -X POST -H "Authorization: Bearer $GITHUB_TOKEN" -H "$API_HEADERS" \
+              -H "Content-Type: application/octet-stream" \
+              "$UPLOAD_URL?name=$(echo -n "$name" | jq -sRr @uri)" \
+              --data-binary "@$path"
+          done < <(find artifacts -type f \( -name "*.deb" -o -name "*.rpm" -o -name "*.AppImage" -o -name "*.msi" -o -name "*.exe" -o -name "*.dmg" -o -name "*.zip" -o -name "*.tar.gz" -o -name "*.tar.xz" \) -print0)
