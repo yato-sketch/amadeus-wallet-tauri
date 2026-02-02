@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CreditCardIcon, RefreshCwIcon, WalletIcon } from "lucide-react";
-import { TransactionDetailSheet, TransactionList } from "@/components/transactions";
+import { TransactionDetailDialog, TransactionList } from "@/components/transactions";
 
 // Lib
 import { mergeTransactions } from "@/lib/transactionDisplay";
@@ -190,7 +190,7 @@ export default function TransactionsPage() {
                 </CardContent>
             </Card>
 
-            <TransactionDetailSheet
+            <TransactionDetailDialog
                 tx={selectedTx}
                 open={detailOpen}
                 onOpenChange={setDetailOpen}

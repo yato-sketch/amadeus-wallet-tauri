@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 // Shadcn UI
@@ -6,6 +7,13 @@ import {
     HoverCardContent,
     HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from "@/components/ui/sheet";
 import {
     Sidebar,
     SidebarContent,
@@ -25,10 +33,14 @@ import {
     SidebarTrigger,
     useSidebar,
 } from "@/components/ui/sidebar";
-import { ArrowDownIcon, CreditCardIcon, ChevronRightIcon, DatabaseIcon, GlobeIcon, HomeIcon, InfoIcon, KeyRoundIcon, LogOutIcon, MailIcon, MessageSquareIcon, NewspaperIcon, SendIcon, SettingsIcon, WalletIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ArrowDownIcon, CreditCardIcon, ChevronRightIcon, DatabaseIcon, GlobeIcon, HomeIcon, InfoIcon, KeyRoundIcon, LogOutIcon, MailIcon, MenuIcon, MessageSquareIcon, NewspaperIcon, SendIcon, SettingsIcon, WalletIcon } from "lucide-react";
 
 // Contexts
 import { useWallet } from "@/contexts/WalletContext";
+
+// Hooks
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Lib
 import { SETTINGS_PAGE_LABELS } from "@/lib/settings";
@@ -37,6 +49,8 @@ import { SETTINGS_PAGE_LABELS } from "@/lib/settings";
 import AMALogoSlogan from "@/assets/home/AMA-logo-slogan.png";
 import DarkLogo from "@/assets/amadeus-logo-dark.svg";
 import { toast } from "sonner";
+
+import { BottomNav } from "./BottomNav";
 
 const navItems = [
     { to: "/", label: "Dashboard", icon: HomeIcon },
@@ -155,13 +169,81 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
     const location = useLocation();
     const navigate = useNavigate();
     const { clearWallet } = useWallet();
+    const isMobile = useIsMobile();
     const pathWithHash = location.pathname + (location.hash || "");
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const handleLogout = () => {
         clearWallet();
         toast.success("Logged out");
         navigate("/auth/login", { replace: true });
+        setMobileMenuOpen(false);
     };
+
+    const { current } = getHeaderBreadcrumb(location.pathname);
+
+    if (isMobile) {
+        return (
+            <div className="flex min-h-dvh flex-col bg-background">
+                <header className="sticky top-0 z-40 flex min-h-14 shrink-0 items-center border-b border-border bg-background pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pt-[env(safe-area-inset-top)] pb-3">
+                    <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-2">
+                        <div className="flex min-w-0 items-center justify-start">
+                            <img src={DarkLogo} alt="Amadeus" className="size-8 shrink-0 object-contain" />
+                        </div>
+                        <span className="min-w-0 truncate text-center text-base font-medium text-foreground" aria-hidden="true">
+                            {current}
+                        </span>
+                        <div className="flex min-w-0 items-center justify-end">
+                            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                                <SheetTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-10 min-h-10 w-10 min-w-10 shrink-0" aria-label="Open menu">
+                                        <MenuIcon className="size-5" />
+                                    </Button>
+                                </SheetTrigger>
+                        <SheetContent side="right" className="w-64">
+                            <SheetHeader>
+                                <SheetTitle>Menu</SheetTitle>
+                            </SheetHeader>
+                            <nav className="mt-6 flex flex-col gap-1">
+                                <Button variant="ghost" className="justify-start h-12 min-h-12" asChild>
+                                    <Link to="/news" onClick={() => setMobileMenuOpen(false)}>
+                                        <NewspaperIcon className="size-5 mr-3" />
+                                        News
+                                    </Link>
+                                </Button>
+                                <Button variant="ghost" className="justify-start h-12 min-h-12" asChild>
+                                    <Link to="/contact" onClick={() => setMobileMenuOpen(false)}>
+                                        <MailIcon className="size-5 mr-3" />
+                                        Contact
+                                    </Link>
+                                </Button>
+                                <Button variant="ghost" className="justify-start h-12 min-h-12" asChild>
+                                    <Link to="/feedback" onClick={() => setMobileMenuOpen(false)}>
+                                        <MessageSquareIcon className="size-5 mr-3" />
+                                        Feedback
+                                    </Link>
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    className="justify-start h-12 min-h-12 text-muted-foreground"
+                                    onClick={handleLogout}
+                                >
+                                    <LogOutIcon className="size-5 mr-3" />
+                                    Logout
+                                </Button>
+                            </nav>
+                        </SheetContent>
+                            </Sheet>
+                        </div>
+                    </div>
+                </header>
+                <main className="flex-1 overflow-auto p-4 pb-[calc(5rem+env(safe-area-inset-bottom))]">
+                    {children}
+                </main>
+                <BottomNav />
+            </div>
+        );
+    }
 
     return (
         <SidebarProvider>

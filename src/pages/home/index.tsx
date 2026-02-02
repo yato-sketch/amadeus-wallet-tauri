@@ -28,7 +28,7 @@ export default function HomePage() {
     }, []);
 
     return (
-        <div className="flex min-h-screen flex-col items-center justify-center p-4">
+        <div className="space-y-6 max-w-lg mx-auto">
             <Card className="w-full max-w-lg">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
