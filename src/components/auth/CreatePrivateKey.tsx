@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+
+// Contexts
+import { useWallet } from "@/contexts/WalletContext";
 
 // UI
 import {
@@ -29,17 +33,10 @@ import {
     CheckIcon,
 } from "lucide-react";
 
-// Schemas
+// Lib
 import { createPasswordSchema, type CreatePasswordForm } from "@/lib/schemas";
-
-/** This is mock function. */
-function generatePrivateKeyHex(): string {
-    const bytes = new Uint8Array(32);
-    crypto.getRandomValues(bytes);
-    return Array.from(bytes)
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-}
+import { createWallet, getPublicKeyFromPrivate } from "@/lib/wallet";
+import { copyToClipboard, getErrorMessage } from "@/lib/utils";
 
 type CreatePrivateKeyProps = {
     onBack?: () => void;
@@ -47,6 +44,8 @@ type CreatePrivateKeyProps = {
 };
 
 export default function CreatePrivateKey({ onBack, onSuccess }: CreatePrivateKeyProps) {
+    const navigate = useNavigate();
+    const { setWallet } = useWallet();
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [showConfirm, setShowConfirm] = useState<boolean>(false);
     const [createdPrivateKey, setCreatedPrivateKey] = useState<string | null>(null);
@@ -70,24 +69,25 @@ export default function CreatePrivateKey({ onBack, onSuccess }: CreatePrivateKey
         if (errors.confirmPassword?.message) toast.error(errors.confirmPassword.message);
     }, [errors.password?.message, errors.confirmPassword?.message]);
 
-    const onSubmit = async (_data: CreatePasswordForm) => {
-        const privateKeyHex = generatePrivateKeyHex();
-        setCreatedPrivateKey(privateKeyHex);
-        toast.success("Wallet created", {
-            description: "Save your private key below. You will need it to recover your wallet.",
-        });
+    const onSubmit = async (data: CreatePasswordForm) => {
+        try {
+            const privateKeyBase58 = await createWallet(data.password);
+            setCreatedPrivateKey(privateKeyBase58);
+            toast.success("Wallet created", {
+                description: "Save your private key below. You will need it to recover your wallet.",
+            });
+        } catch (e) {
+            const msg = getErrorMessage(e);
+            toast.error("Failed to create wallet", { description: msg });
+        }
     };
 
-    const copyToClipboard = useCallback(async () => {
+    const handleCopyKey = useCallback(() => {
         if (!createdPrivateKey) return;
-        try {
-            await navigator.clipboard.writeText(createdPrivateKey);
+        copyToClipboard(createdPrivateKey, "Private key", () => {
             setCopied(true);
-            toast.success("Private key copied to clipboard");
             setTimeout(() => setCopied(false), 2000);
-        } catch {
-            toast.error("Failed to copy");
-        }
+        });
     }, [createdPrivateKey]);
 
     const downloadKey = useCallback(() => {
@@ -111,7 +111,7 @@ export default function CreatePrivateKey({ onBack, onSuccess }: CreatePrivateKey
                         Your private key
                     </CardTitle>
                     <CardDescription>
-                        Save this key in a safe place. Anyone with this key can access your wallet. Do not share it.
+                        Save this key in a safe place (Base58, 64 bytes). Anyone with this key can access your wallet. Do not share it.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -123,7 +123,7 @@ export default function CreatePrivateKey({ onBack, onSuccess }: CreatePrivateKey
                             type="button"
                             variant="outline"
                             className="flex-1 gap-2"
-                            onClick={copyToClipboard}
+                            onClick={handleCopyKey}
                         >
                             {copied ? (
                                 <CheckIcon className="h-4 w-4" />
@@ -147,7 +147,18 @@ export default function CreatePrivateKey({ onBack, onSuccess }: CreatePrivateKey
                     <Button
                         type="button"
                         className="w-full gap-2"
-                        onClick={() => onSuccess?.()}
+                        onClick={async () => {
+                            if (!createdPrivateKey) return;
+                            try {
+                                const publicKeyHex = await getPublicKeyFromPrivate(createdPrivateKey);
+                                setWallet(publicKeyHex, createdPrivateKey);
+                                onSuccess?.();
+                                navigate("/", { state: { publicKeyHex, privateKeyBase58: createdPrivateKey }, replace: true });
+                            } catch (e) {
+                                const msg = getErrorMessage(e);
+                                toast.error("Failed to open wallet", { description: msg });
+                            }
+                        }}
                     >
                         <KeyRoundIcon className="h-4 w-4" />
                         Continue to wallet

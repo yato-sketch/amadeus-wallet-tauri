@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+
+// Contexts
+import { useWallet } from "@/contexts/WalletContext";
 
 // UI
 import {
@@ -19,6 +23,7 @@ import {
 } from "@/components/ui/input-group";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 import {
     EyeIcon,
     EyeOffIcon,
@@ -27,12 +32,13 @@ import {
     ArrowLeftIcon,
 } from "lucide-react";
 
-// Schemas
+// Lib
 import {
     createPasswordSchema,
     importWalletSchema,
     type ImportWalletForm,
 } from "@/lib/schemas";
+import { importWallet, getPublicKeyFromPrivate } from "@/lib/wallet";
 
 type Step = "password" | "private-key";
 
@@ -42,6 +48,8 @@ type ImportPrivateKeyProps = {
 };
 
 export default function ImportPrivateKey({ onBack, onSuccess }: ImportPrivateKeyProps) {
+    const navigate = useNavigate();
+    const { setWallet } = useWallet();
     const [step, setStep] = useState<Step>("password");
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
@@ -83,11 +91,21 @@ export default function ImportPrivateKey({ onBack, onSuccess }: ImportPrivateKey
         setStep("private-key");
     };
 
-    const onImportSubmit = async (_data: ImportWalletForm) => {
-        toast.success("Wallet imported", {
-            description: "Your wallet is ready. Keep your password safe.",
-        });
-        onSuccess?.();
+    const onImportSubmit = async (data: ImportWalletForm) => {
+        try {
+            const privateKeyBase58 = data.privateKey.trim();
+            await importWallet(privateKeyBase58, data.password);
+            const publicKeyHex = await getPublicKeyFromPrivate(privateKeyBase58);
+            setWallet(publicKeyHex, privateKeyBase58);
+            toast.success("Wallet imported", {
+                description: "Your wallet is ready. Keep your password safe.",
+            });
+            onSuccess?.();
+            navigate("/", { state: { publicKeyHex, privateKeyBase58 }, replace: true });
+        } catch (e) {
+            const msg = getErrorMessage(e);
+            toast.error("Failed to import wallet", { description: msg });
+        }
     };
 
     if (step === "private-key") {
@@ -99,7 +117,7 @@ export default function ImportPrivateKey({ onBack, onSuccess }: ImportPrivateKey
                         Enter your private key
                     </CardTitle>
                     <CardDescription>
-                        Paste or type your existing private key (hex) to import the wallet.
+                        Paste or type your existing private key (Base58, 64 bytes) to import the wallet.
                     </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleSubmit(onImportSubmit)}>
@@ -121,7 +139,7 @@ export default function ImportPrivateKey({ onBack, onSuccess }: ImportPrivateKey
                                         <InputGroupTextarea
                                             {...field}
                                             id="import-private-key"
-                                            placeholder="Paste or type your private key (hex)..."
+                                            placeholder="Paste or type your private key (Base58, 64 bytes)..."
                                             rows={3}
                                             className="resize-none"
                                             aria-invalid={!!errors.privateKey}

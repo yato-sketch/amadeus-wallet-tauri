@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-// UI
+// Contexts
+import { useWallet } from "@/contexts/WalletContext";
+
+// Shadcn UI
 import {
     InputGroup,
     InputGroupAddon,
@@ -19,12 +22,16 @@ import {
     WalletIcon,
 } from "lucide-react";
 
-// Schemas
+// Lib
 import { loginSchema } from "@/lib/schemas";
+import { unlockWallet } from "@/lib/wallet";
+import { getErrorMessage } from "@/lib/utils";
 
 type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
+    const navigate = useNavigate();
+    const { setPublicKeyOnly } = useWallet();
     const [showPassword, setShowPassword] = useState<boolean>(false);
 
     const {
@@ -39,7 +46,6 @@ export default function LoginPage() {
         mode: "onSubmit",
     });
 
-    // Optional toast feedback (safe, no render side effects)
     useEffect(() => {
         if (errors.password) {
             toast.error(errors.password.message);
@@ -47,13 +53,15 @@ export default function LoginPage() {
     }, [errors.password]);
 
     const onSubmit = async (data: LoginForm) => {
-        toast.success("Login successful", {
-            description: "Wallet unlocked",
-            action: {
-                label: "View Wallet",
-                onClick: () => console.log(data.password),
-            },
-        });
+        try {
+            const publicKeyBase58 = await unlockWallet(data.password);
+            setPublicKeyOnly(publicKeyBase58);
+            toast.success("Wallet unlocked");
+            navigate("/", { state: { publicKeyBase58 }, replace: true });
+        } catch (e) {
+            const msg = getErrorMessage(e);
+            toast.error("Failed to unlock wallet", { description: msg });
+        }
     };
 
     return (
