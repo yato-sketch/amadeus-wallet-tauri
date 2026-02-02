@@ -1,8 +1,11 @@
-name: Build
+name: Build and Release
 
 on:
   push:
     branches: [main]
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -14,6 +17,15 @@ jobs:
           - platform: windows-latest
           - platform: macos-latest
     runs-on: ${{ matrix.platform }}
+
+    env:
+      VITE_DEV_MODE: ${{ vars.VITE_DEV_MODE }}
+      VITE_PROD_MODE: ${{ vars.VITE_PROD_MODE }}
+      VITE_APP_NAME: ${{ vars.VITE_APP_NAME }}
+      VITE_APP_VERSION: ${{ vars.VITE_APP_VERSION }}
+      VITE_DOCS_URL: ${{ vars.VITE_DOCS_URL }}
+      VITE_WALLET_CHECK_TIMEOUT_MS: ${{ vars.VITE_WALLET_CHECK_TIMEOUT_MS }}
+      VITE_AMADEUS_NODE_API_URL: ${{ vars.VITE_AMADEUS_NODE_API_URL }}
 
     steps:
       - name: Checkout repository
@@ -59,3 +71,46 @@ jobs:
         with:
           name: amadeus-wallet-${{ matrix.platform }}
           path: src-tauri/target/release/bundle/
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: amadeus-wallet-ubuntu-latest
+          path: artifacts/linux
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: amadeus-wallet-windows-latest
+          path: artifacts/windows
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: amadeus-wallet-macos-latest
+          path: artifacts/macos
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ vars.VITE_APP_VERSION }}
+          name: ${{ vars.VITE_APP_NAME }} v${{ vars.VITE_APP_VERSION }}
+          body: |
+            **Build** from commit ${{ github.sha }}
+            Triggered by push to `main`.
+          files: |
+            artifacts/linux/**/*
+            artifacts/windows/**/*
+            artifacts/macos/**/*
+          draft: false
+          update: true
+          replace_assets: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
