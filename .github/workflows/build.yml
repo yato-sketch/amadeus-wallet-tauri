@@ -109,27 +109,20 @@ jobs:
             git push origin "$TAG"
           fi
 
-      - name: Publish Release
-        id: release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ vars.VITE_APP_VERSION }}
-          name: ${{ vars.VITE_APP_NAME }} v${{ vars.VITE_APP_VERSION }}
-          body: |
-            **Build** from commit ${{ github.sha }}
-            Triggered by push to `main`.
-          files: |
-            artifacts/linux/**/*
-            artifacts/windows/**/*
-            artifacts/macos/**/*
-          draft: false
-          make_latest: true
-          overwrite_files: true
+      # Delete existing release (keeps tag). Avoids "delete release asset" 404 when overwriting.
+      - name: Delete existing release for tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: v${{ vars.VITE_APP_VERSION }}
+        run: |
+          RELEASE_ID=$(curl -sS -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/${TAG}" | jq -r '.id // empty')
+          if [ -n "$RELEASE_ID" ]; then
+            curl -sS -X DELETE -H "Authorization: token $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID"
+          fi
 
-      - name: Publish Release (retry)
-        if: failure()
+      - name: Publish Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ vars.VITE_APP_VERSION }}
@@ -143,6 +136,5 @@ jobs:
             artifacts/macos/**/*
           draft: false
           make_latest: true
-          overwrite_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
