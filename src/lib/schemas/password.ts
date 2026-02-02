@@ -32,3 +32,16 @@ export const importWalletSchema = createPasswordSchema.extend({
 });
 
 export type ImportWalletForm = z.infer<typeof importWalletSchema>;
+
+export const changePasswordSchema = z
+    .object({
+        currentPassword: z.string().min(1, "Enter your current password"),
+        newPassword: passwordSchema,
+        confirmPassword: z.string().min(1, "Confirm your new password"),
+    })
+    .refine((data) => data.newPassword === data.confirmPassword, {
+        message: "New password and confirmation do not match",
+        path: ["confirmPassword"],
+    });
+
+export type ChangePasswordForm = z.infer<typeof changePasswordSchema>;

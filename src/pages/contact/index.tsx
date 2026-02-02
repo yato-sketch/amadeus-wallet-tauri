@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -22,6 +22,7 @@ import { MailIcon, Loader2Icon, ArrowLeftIcon } from "lucide-react";
 import { contactSchema, type ContactForm } from "@/lib/schemas";
 
 export default function ContactPage() {
+    const navigate = useNavigate();
     const {
         handleSubmit,
         control,
@@ -165,11 +166,9 @@ export default function ContactPage() {
                             )}
                             Send message
                         </Button>
-                        <Button variant="ghost" className="w-full gap-2" asChild>
-                            <Link to="/auth/login">
-                                <ArrowLeftIcon className="h-4 w-4" />
-                                Back to login
-                            </Link>
+                        <Button variant="ghost" className="w-full gap-2" onClick={(e) => { e.preventDefault(); navigate(-1); }}>
+                            <ArrowLeftIcon className="h-4 w-4" />
+                            Back
                         </Button>
                     </CardFooter>
                 </form>
