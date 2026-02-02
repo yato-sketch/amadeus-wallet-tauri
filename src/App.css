@@ -122,4 +122,11 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Mobile: safe area insets for notches and home indicator */
+  @media (max-width: 767px) {
+    html {
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
+  }
 }

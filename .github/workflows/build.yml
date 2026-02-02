@@ -78,6 +78,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Download Linux artifacts
         uses: actions/download-artifact@v4
@@ -97,7 +99,18 @@ jobs:
           name: amadeus-wallet-macos-latest
           path: artifacts/macos
 
-      - name: Create Release
+      - name: Ensure release tag exists
+        run: |
+          TAG="v${{ vars.VITE_APP_VERSION }}"
+          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git tag -a "$TAG" -m "Release $TAG"
+            git push origin "$TAG"
+          fi
+
+      - name: Publish Release
+        id: release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ vars.VITE_APP_VERSION }}
@@ -110,6 +123,26 @@ jobs:
             artifacts/windows/**/*
             artifacts/macos/**/*
           draft: false
+          make_latest: true
+          overwrite_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Release (retry)
+        if: failure()
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ vars.VITE_APP_VERSION }}
+          name: ${{ vars.VITE_APP_NAME }} v${{ vars.VITE_APP_VERSION }}
+          body: |
+            **Build** from commit ${{ github.sha }}
+            Triggered by push to `main`.
+          files: |
+            artifacts/linux/**/*
+            artifacts/windows/**/*
+            artifacts/macos/**/*
+          draft: false
+          make_latest: true
           overwrite_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -3,12 +3,12 @@ import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
-} from "@/components/ui/sheet";
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import { CopyIcon, Loader2Icon } from "lucide-react";
 import { getTransactionStatus } from "@/lib/wallet";
 import { copyToClipboard } from "@/lib/utils";
@@ -60,7 +60,7 @@ function DetailRow({
     );
 }
 
-export function TransactionDetailSheet({ tx, open, onOpenChange }: Props) {
+export function TransactionDetailDialog({ tx, open, onOpenChange }: Props) {
     const [copiedField, setCopiedField] = useState<string | null>(null);
     const [fetchedStatus, setFetchedStatus] = useState<string | null>(null);
     const [statusLoading, setStatusLoading] = useState(false);
@@ -102,15 +102,15 @@ export function TransactionDetailSheet({ tx, open, onOpenChange }: Props) {
     const statusBadge = formatTxStatus(statusDisplay);
 
     return (
-        <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
-                <SheetHeader>
-                    <SheetTitle>Transaction details</SheetTitle>
-                    <SheetDescription>
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="max-h-[90vh] w-[calc(100vw-2rem)] max-w-lg overflow-y-auto">
+                <DialogHeader>
+                    <DialogTitle>Transaction details</DialogTitle>
+                    <DialogDescription>
                         {isSent ? "Sent" : "Received"} {tx.amountDisplay} AMA
-                    </SheetDescription>
-                </SheetHeader>
-                <div className="flex flex-col gap-4 p-4 pt-2">
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="flex flex-col gap-4 pt-2">
                     <div className="flex flex-col gap-1">
                         <span className="text-xs font-medium text-muted-foreground">Status</span>
                         <div className="flex items-center gap-2">
@@ -183,7 +183,7 @@ export function TransactionDetailSheet({ tx, open, onOpenChange }: Props) {
                         />
                     )}
                 </div>
-            </SheetContent>
-        </Sheet>
+            </DialogContent>
+        </Dialog>
     );
 }
