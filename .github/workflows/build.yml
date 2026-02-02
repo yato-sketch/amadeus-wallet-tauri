@@ -110,7 +110,6 @@ jobs:
             artifacts/windows/**/*
             artifacts/macos/**/*
           draft: false
-          update: true
-          replace_assets: true
+          overwrite_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
