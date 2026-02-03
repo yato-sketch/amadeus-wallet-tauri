@@ -68,16 +68,24 @@ export default function TransactionsPage() {
             .then((res) => {
                 if (res.ok && res.transactions.length > 0) {
                     setApiTransactions((prev) => {
-                        const byHash = new Map(
-                            prev.map((t) => [t.tx_hash ?? `i-${prev.indexOf(t)}`, t])
+                        const byKey = new Map(
+                            prev.map((t, i) => [
+                                `${t.tx_hash ?? `i-${i}`}-${t.kind ?? "sent"}`,
+                                t,
+                            ])
                         );
                         res.transactions.forEach((t) => {
-                            const k = t.tx_hash ?? `new-${t.block_height ?? 0}`;
-                            if (!byHash.has(k)) byHash.set(k, t);
+                            const k = `${t.tx_hash ?? `new-${t.block_height ?? 0}`}-${t.kind ?? "sent"}`;
+                            if (!byKey.has(k)) byKey.set(k, t);
                         });
-                        return Array.from(byHash.values()).sort(
-                            (a, b) => (b.block_height ?? 0) - (a.block_height ?? 0)
-                        );
+                        return Array.from(byKey.values()).sort((a, b) => {
+                            const blockA = a.block_height ?? 0;
+                            const blockB = b.block_height ?? 0;
+                            if (blockB !== blockA) return blockB - blockA;
+                            if (a.kind === "received" && b.kind === "sent") return -1;
+                            if (a.kind === "sent" && b.kind === "received") return 1;
+                            return 0;
+                        });
                     });
                 }
                 setNextSentCursor(res.next_sent_cursor ?? null);

@@ -471,23 +471,50 @@ pub async fn get_transactions_from_api(
         _ => (vec![], None),
     };
 
-    let mut seen: std::collections::HashSet<String> = transactions
-        .iter()
-        .filter_map(|t| t.tx_hash.clone())
-        .collect();
     for tx in received {
-        if let Some(ref h) = tx.tx_hash {
-            if seen.contains(h) {
-                continue;
-            }
-            seen.insert(h.clone());
-        }
         transactions.push(tx);
     }
+
+    let received_hashes: std::collections::HashSet<_> = transactions
+        .iter()
+        .filter(|t| t.kind == "received")
+        .filter_map(|t| t.tx_hash.as_ref())
+        .collect();
+    let mut extra: Vec<TransactionItem> = Vec::new();
+    for tx in &transactions {
+        if tx.kind != "sent" {
+            continue;
+        }
+        let is_self = tx.to_address.as_deref() == Some(addr);
+        if !is_self {
+            continue;
+        }
+        let Some(ref h) = tx.tx_hash else {
+            continue;
+        };
+        if received_hashes.contains(h) {
+            continue;
+        }
+        let mut recv = tx.clone();
+        recv.kind = "received".to_string();
+        recv.from_address = tx.to_address.clone();
+        recv.to_address = tx.from_address.clone();
+        extra.push(recv);
+    }
+    transactions.extend(extra);
     transactions.sort_by(|a, b| {
         let ha = a.block_height.unwrap_or(0);
         let hb = b.block_height.unwrap_or(0);
-        hb.cmp(&ha)
+        match hb.cmp(&ha) {
+            std::cmp::Ordering::Equal => {
+                match (a.kind.as_str(), b.kind.as_str()) {
+                    ("received", "sent") => std::cmp::Ordering::Less,
+                    ("sent", "received") => std::cmp::Ordering::Greater,
+                    _ => std::cmp::Ordering::Equal,
+                }
+            }
+            o => o,
+        }
     });
 
     Ok(TransactionsResult {

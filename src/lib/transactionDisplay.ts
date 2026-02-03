@@ -37,7 +37,7 @@ export function mergeTransactions(
             execUsedDisplay,
             timestampMs: tx.timestamp_ms,
         };
-        const key = tx.tx_hash ?? `api-${i}`;
+        const key = `${tx.tx_hash ?? `api-${i}`}-${kind}`;
         byKey.set(key, entry);
     });
     localSent.forEach((tx) => {
@@ -56,7 +56,14 @@ export function mergeTransactions(
         });
     });
     const list = Array.from(byKey.values());
-    list.sort((a, b) => (b.blockHeight ?? 0) - (a.blockHeight ?? 0));
+    list.sort((a, b) => {
+        const blockA = a.blockHeight ?? 0;
+        const blockB = b.blockHeight ?? 0;
+        if (blockB !== blockA) return blockB - blockA;
+        if (a.kind === "received" && b.kind === "sent") return -1;
+        if (a.kind === "sent" && b.kind === "received") return 1;
+        return 0;
+    });
     return list;
 }
 
