@@ -1,4 +1,4 @@
-import { AMADEUS_URI_PREFIX } from "@/lib/constants";
+import { globals } from "@/lib/globals";
 
 export type ParsedRequestLink = {
     address: string;
@@ -8,10 +8,10 @@ export type ParsedRequestLink = {
 
 export function parseRequestLink(uri: string): ParsedRequestLink | null {
     const trimmed = (uri ?? "").trim();
-    if (!trimmed.toLowerCase().startsWith(AMADEUS_URI_PREFIX.toLowerCase())) {
+    if (!trimmed.toLowerCase().startsWith(globals.AMADEUS_URI_PREFIX.toLowerCase())) {
         return null;
     }
-    const withoutPrefix = trimmed.slice(AMADEUS_URI_PREFIX.length);
+    const withoutPrefix = trimmed.slice(globals.AMADEUS_URI_PREFIX.toLowerCase().length);
     const [addressPart, queryPart] = withoutPrefix.split("?", 2);
     const address = addressPart?.trim() ?? "";
     if (!address) return null;

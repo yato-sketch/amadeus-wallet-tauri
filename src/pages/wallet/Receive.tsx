@@ -4,8 +4,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import QRCode from "qrcode";
 
+// Contexts
 import { useWallet } from "@/contexts/WalletContext";
+
+// Components
 import { useRefetchBalance } from "@/components/layout";
+
+// Shadcn UI
 import {
     Card,
     CardContent,
@@ -16,10 +21,13 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ArrowDownIcon, CopyIcon } from "lucide-react";
+
+// Lib
 import { receiveRequestSchema, type ReceiveRequestForm } from "@/lib/schemas";
-import { AMADEUS_URI_PREFIX } from "@/lib/constants";
+import { globals } from "@/lib/globals";
 import { copyToClipboard } from "@/lib/utils";
 
 export default function WalletReceivePage() {
@@ -66,7 +74,7 @@ export default function WalletReceivePage() {
             const params = new URLSearchParams();
             if (amount?.trim()) params.set("amount", amount.trim());
             if (memo?.trim()) params.set("memo", memo.trim());
-            setRequestUri(`${AMADEUS_URI_PREFIX}${publicKeyBase58}?${params.toString()}`);
+            setRequestUri(`${globals.AMADEUS_URI_PREFIX}${publicKeyBase58}?${params.toString()}`);
         } else {
             setRequestUri(null);
         }
@@ -87,7 +95,7 @@ export default function WalletReceivePage() {
         const params = new URLSearchParams();
         if (data.amount?.trim()) params.set("amount", data.amount.trim());
         if (data.memo?.trim()) params.set("memo", data.memo.trim());
-        const uri = `${AMADEUS_URI_PREFIX}${publicKeyBase58}?${params.toString()}`;
+        const uri = `${globals.AMADEUS_URI_PREFIX}${publicKeyBase58}?${params.toString()}`;
         copyToClipboard(uri, "Request link");
         toast.success("Request link copied", { description: "Share this link so others can send you the specified amount." });
     };
@@ -138,9 +146,9 @@ export default function WalletReceivePage() {
                 <form onSubmit={handleSubmit(onRequestSubmit)}>
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
-                            <label htmlFor="receive-amount" className="text-sm font-medium">
+                            <Label htmlFor="receive-amount" className="text-sm font-medium">
                                 Amount
-                            </label>
+                            </Label>
                             <Input
                                 id="receive-amount"
                                 placeholder="0"
@@ -151,9 +159,9 @@ export default function WalletReceivePage() {
                             )}
                         </div>
                         <div className="space-y-2">
-                            <label htmlFor="receive-memo" className="text-sm font-medium">
+                            <Label htmlFor="receive-memo" className="text-sm font-medium">
                                 Memo
-                            </label>
+                            </Label>
                             <Input
                                 id="receive-memo"
                                 placeholder="e.g. Invoice #123"
