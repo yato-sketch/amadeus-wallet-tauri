@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+
+// Contexts
 import { useWallet } from "@/contexts/WalletContext";
+
+// Shadcn UI
 import {
     Card,
     CardContent,
@@ -9,6 +13,8 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { KeyRoundIcon } from "lucide-react";
+
+// Lib
 import { getWalletFilePath } from "@/lib/wallet";
 
 type WalletState = { publicKeyBase58: string; privateKeyBase58?: string | null };

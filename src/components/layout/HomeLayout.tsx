@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 // Shadcn UI
@@ -34,7 +34,7 @@ import {
     useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { ArrowDownIcon, CreditCardIcon, ChevronRightIcon, DatabaseIcon, GlobeIcon, HomeIcon, InfoIcon, KeyRoundIcon, LogOutIcon, MailIcon, MenuIcon, MessageSquareIcon, NewspaperIcon, SendIcon, SettingsIcon, WalletIcon } from "lucide-react";
+import { ArrowDownIcon, ChevronDownIcon, CreditCardIcon, ChevronRightIcon, DatabaseIcon, GlobeIcon, HomeIcon, InfoIcon, KeyRoundIcon, LogOutIcon, MailIcon, MenuIcon, MessageSquareIcon, NewspaperIcon, SendIcon, SettingsIcon, WalletIcon } from "lucide-react";
 
 // Contexts
 import { useWallet } from "@/contexts/WalletContext";
@@ -43,6 +43,7 @@ import { useWallet } from "@/contexts/WalletContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // Lib
+import { cn } from "@/lib/utils";
 import { SETTINGS_PAGE_LABELS } from "@/lib/settings";
 
 // Assets
@@ -53,7 +54,7 @@ import { toast } from "sonner";
 import { BottomNav } from "./BottomNav";
 
 const navItems = [
-    { to: "/", label: "Dashboard", icon: HomeIcon },
+    { to: "/", label: "Home", icon: HomeIcon },
     { to: "/transactions", label: "Transactions", icon: CreditCardIcon },
     { to: "/wallet/receive", label: "My Wallet", icon: WalletIcon, subItems: [
         { to: "/wallet/send", label: "Send", icon: SendIcon },
@@ -75,7 +76,7 @@ const newsItems = [
 type NavItem = (typeof navItems)[number];
 
 function getHeaderBreadcrumb(pathname: string): { parent?: { to: string; label: string }; current: string } {
-    if (pathname === "/" || pathname === "") return { current: "Dashboard" };
+    if (pathname === "/" || pathname === "") return { current: "Home" };
     if (pathname === "/transactions") return { current: "Transactions" };
     if (pathname === "/news") return { current: "News" };
     if (pathname === "/feedback") return { current: "Feedback" };
@@ -90,12 +91,25 @@ function getHeaderBreadcrumb(pathname: string): { parent?: { to: string; label: 
         return { parent: { to: "/settings", label: "Settings" }, current };
     }
     const segment = pathname.split("/")[1];
-    return { current: segment ? segment.charAt(0).toUpperCase() + segment.slice(1) : "Dashboard" };
+    return { current: segment ? segment.charAt(0).toUpperCase() + segment.slice(1) : "Home" };
 }
 
-function NavItemWithSub({ item, pathname, pathWithHash }: { item: NavItem; pathname: string; pathWithHash: string }) {
+function NavItemWithSub({
+    item,
+    pathname,
+    pathWithHash,
+    openGroupKey,
+    setOpenGroupKey,
+}: {
+    item: NavItem;
+    pathname: string;
+    pathWithHash: string;
+    openGroupKey: string | null;
+    setOpenGroupKey: (key: string | null) => void;
+}) {
     const { state } = useSidebar();
     const isCollapsed = state === "collapsed";
+    const isGroupOpen = openGroupKey === item.to;
 
     if (!item.subItems) {
         return (
@@ -143,26 +157,40 @@ function NavItemWithSub({ item, pathname, pathWithHash }: { item: NavItem; pathn
 
     return (
         <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={pathname === item.to || pathWithHash.startsWith(item.to)}>
-                <Link to={item.to}>
-                    <item.icon className="size-4" />
-                    <span>{item.label}</span>
-                </Link>
+            <SidebarMenuButton
+                isActive={pathname === item.to || pathWithHash.startsWith(item.to)}
+                onClick={() => setOpenGroupKey(isGroupOpen ? null : item.to)}
+                className="cursor-pointer"
+            >
+                <item.icon className="size-4" />
+                <span>{item.label}</span>
+                <ChevronDownIcon
+                    className={cn("ml-auto size-4 shrink-0 transition-transform", isGroupOpen && "rotate-180")}
+                    aria-hidden
+                />
             </SidebarMenuButton>
-            <SidebarMenuSub className="border-gray-800">
-                {item.subItems.map((subItem) => (
-                    <SidebarMenuSubItem key={subItem.to}>
-                        <SidebarMenuSubButton asChild isActive={pathWithHash === subItem.to}>
-                            <Link to={subItem.to}>
-                                <subItem.icon className="size-4" />
-                                <span>{subItem.label}</span>
-                            </Link>
-                        </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                ))}
-            </SidebarMenuSub>
+            {isGroupOpen && (
+                <SidebarMenuSub className="border-border">
+                    {item.subItems.map((subItem) => (
+                        <SidebarMenuSubItem key={subItem.to}>
+                            <SidebarMenuSubButton asChild isActive={pathWithHash === subItem.to}>
+                                <Link to={subItem.to}>
+                                    <subItem.icon className="size-4" />
+                                    <span>{subItem.label}</span>
+                                </Link>
+                            </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                    ))}
+                </SidebarMenuSub>
+            )}
         </SidebarMenuItem>
     );
+}
+
+function getDefaultOpenGroup(pathname: string): string | null {
+    if (pathname.startsWith("/wallet")) return "/wallet/receive";
+    if (pathname.startsWith("/settings")) return "/settings";
+    return null;
 }
 
 export default function HomeLayout({ children }: { children: React.ReactNode }) {
@@ -172,6 +200,14 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
     const isMobile = useIsMobile();
     const pathWithHash = location.pathname + (location.hash || "");
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [openGroupKey, setOpenGroupKey] = useState<string | null>(() =>
+        getDefaultOpenGroup(location.pathname)
+    );
+
+    useEffect(() => {
+        const next = getDefaultOpenGroup(location.pathname);
+        if (next != null) setOpenGroupKey(next);
+    }, [location.pathname]);
 
     const handleLogout = () => {
         clearWallet();
@@ -260,7 +296,14 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
                         <SidebarGroupContent>
                             <SidebarMenu>
                                 {navItems.map((item) => (
-                                    <NavItemWithSub key={item.to} item={item} pathname={location.pathname} pathWithHash={pathWithHash} />
+                                    <NavItemWithSub
+                                        key={item.to}
+                                        item={item}
+                                        pathname={location.pathname}
+                                        pathWithHash={pathWithHash}
+                                        openGroupKey={openGroupKey}
+                                        setOpenGroupKey={setOpenGroupKey}
+                                    />
                                 ))}
                             </SidebarMenu>
                         </SidebarGroupContent>

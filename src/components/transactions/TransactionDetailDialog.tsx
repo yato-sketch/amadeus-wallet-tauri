@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+// Shadcn UI
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,7 +10,9 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { CopyIcon, Loader2Icon } from "lucide-react";
+import { CheckIcon, CopyIcon, Loader2Icon } from "lucide-react";
+
+// Lib
 import { getTransactionStatus } from "@/lib/wallet";
 import { copyToClipboard } from "@/lib/utils";
 import type { UnifiedTx } from "@/lib/transactionDisplay";
@@ -49,7 +52,7 @@ function DetailRow({
                         title={`Copy ${label}`}
                     >
                         {copiedField === label ? (
-                            <span className="text-xs">Copied</span>
+                            <CheckIcon className="text-xs" />
                         ) : (
                             <CopyIcon className="h-3.5 w-3.5" />
                         )}
