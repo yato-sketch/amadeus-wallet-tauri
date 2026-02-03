@@ -13,6 +13,7 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -71,12 +72,12 @@ export default function ContactPage() {
                             control={control}
                             render={({ field }) => (
                                 <div className="space-y-2">
-                                    <label
+                                    <Label
                                         htmlFor="contact-name"
                                         className="text-sm font-medium leading-none"
                                     >
                                         Name
-                                    </label>
+                                    </Label>
                                     <Input
                                         {...field}
                                         id="contact-name"
@@ -92,12 +93,12 @@ export default function ContactPage() {
                             control={control}
                             render={({ field }) => (
                                 <div className="space-y-2">
-                                    <label
+                                    <Label
                                         htmlFor="contact-email"
                                         className="text-sm font-medium leading-none"
                                     >
                                         Email
-                                    </label>
+                                    </Label>
                                     <Input
                                         {...field}
                                         id="contact-email"
@@ -114,12 +115,12 @@ export default function ContactPage() {
                             control={control}
                             render={({ field }) => (
                                 <div className="space-y-2">
-                                    <label
+                                    <Label
                                         htmlFor="contact-subject"
                                         className="text-sm font-medium leading-none"
                                     >
                                         Subject
-                                    </label>
+                                    </Label>
                                     <Input
                                         {...field}
                                         id="contact-subject"
@@ -135,12 +136,12 @@ export default function ContactPage() {
                             control={control}
                             render={({ field }) => (
                                 <div className="space-y-2">
-                                    <label
+                                    <Label
                                         htmlFor="contact-message"
                                         className="text-sm font-medium leading-none"
                                     >
                                         Message
-                                    </label>
+                                    </Label>
                                     <Textarea
                                         {...field}
                                         id="contact-message"

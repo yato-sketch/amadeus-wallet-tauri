@@ -6,8 +6,11 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { GlobeIcon, CopyIcon, RotateCcwIcon, Loader2Icon, CheckCircleIcon, XCircleIcon } from "lucide-react";
+
+// Lib
 import { globals } from "@/lib/globals";
 
 type Props = {
@@ -49,9 +52,9 @@ export function NetworkSection({
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div>
-                        <label htmlFor="api-url" className="text-sm font-medium block mb-1.5">
+                        <Label htmlFor="api-url" className="text-sm font-medium block mb-1.5">
                             API URL
-                        </label>
+                        </Label>
                         <div className="flex gap-2">
                             <Input
                                 id="api-url"

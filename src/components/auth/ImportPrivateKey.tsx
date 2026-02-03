@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/input-group";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { getErrorMessage } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
 import {
     EyeIcon,
     EyeOffIcon,
@@ -39,6 +39,7 @@ import {
     type ImportWalletForm,
 } from "@/lib/schemas";
 import { importWallet, getPublicKeyFromPrivate } from "@/lib/wallet";
+import { getErrorMessage } from "@/lib/utils";
 
 type Step = "password" | "private-key";
 
@@ -123,12 +124,12 @@ export default function ImportPrivateKey({ onBack, onSuccess }: ImportPrivateKey
                 <form onSubmit={handleSubmit(onImportSubmit)}>
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
-                            <label
+                            <Label
                                 htmlFor="import-private-key"
                                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                             >
                                 Existing private key
-                            </label>
+                            </Label>
                             <Controller
                                 name="privateKey"
                                 control={control}

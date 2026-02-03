@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { SendIcon, Loader2Icon, LinkIcon } from "lucide-react";
 
@@ -224,9 +225,9 @@ export default function WalletSendPage() {
                             </Button>
                         </div>
                         <div className="space-y-2">
-                            <label htmlFor="send-recipient" className="text-sm font-medium">
+                            <Label htmlFor="send-recipient" className="text-sm font-medium">
                                 Recipient address
-                            </label>
+                            </Label>
                             <Controller
                                 name="recipientAddress"
                                 control={control}
@@ -279,9 +280,9 @@ export default function WalletSendPage() {
                             )}
                         </div>
                         <div className="space-y-2">
-                            <label htmlFor="send-amount" className="text-sm font-medium">
+                            <Label htmlFor="send-amount" className="text-sm font-medium">
                                 Amount
-                            </label>
+                            </Label>
                             <Controller
                                 name="amount"
                                 control={control}
@@ -300,9 +301,9 @@ export default function WalletSendPage() {
                             )}
                         </div>
                         <div className="space-y-2">
-                            <label htmlFor="send-memo" className="text-sm font-medium">
+                            <Label htmlFor="send-memo" className="text-sm font-medium">
                                 Memo (optional)
-                            </label>
+                            </Label>
                             <Controller
                                 name="memo"
                                 control={control}
@@ -320,9 +321,9 @@ export default function WalletSendPage() {
                             )}
                         </div>
                         <div className="space-y-2">
-                            <label htmlFor="send-password" className="text-sm font-medium">
+                            <Label htmlFor="send-password" className="text-sm font-medium">
                                 Wallet password
-                            </label>
+                            </Label>
                             <Controller
                                 name="password"
                                 control={control}

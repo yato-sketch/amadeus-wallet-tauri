@@ -6,6 +6,7 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { KeyRoundIcon, Loader2Icon } from "lucide-react";
 
@@ -44,9 +45,9 @@ export function PasswordSection({
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div>
-                        <label htmlFor="current-pw" className="text-sm font-medium block mb-1.5">
+                        <Label htmlFor="current-pw" className="text-sm font-medium block mb-1.5">
                             Current password
-                        </label>
+                        </Label>
                         <Input
                             id="current-pw"
                             type="password"
@@ -58,9 +59,9 @@ export function PasswordSection({
                         />
                     </div>
                     <div>
-                        <label htmlFor="new-pw" className="text-sm font-medium block mb-1.5">
+                        <Label htmlFor="new-pw" className="text-sm font-medium block mb-1.5">
                             New password
-                        </label>
+                        </Label>
                         <p className="text-xs text-muted-foreground mb-1.5">
                             At least 8 characters; include upper, lower, number, and special character (!@#$%^&*()).
                         </p>
@@ -75,9 +76,9 @@ export function PasswordSection({
                         />
                     </div>
                     <div>
-                        <label htmlFor="confirm-pw" className="text-sm font-medium block mb-1.5">
+                        <Label htmlFor="confirm-pw" className="text-sm font-medium block mb-1.5">
                             Confirm new password
-                        </label>
+                        </Label>
                         <Input
                             id="confirm-pw"
                             type="password"
