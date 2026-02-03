@@ -5,5 +5,5 @@ export const globals = {
     WALLET_CHECK_TIMEOUT_MS: Number(import.meta.env.VITE_WALLET_CHECK_TIMEOUT_MS),
     AMADEUS_NODE_API_URL:
         (import.meta.env.VITE_AMADEUS_NODE_API_URL as string)?.replace(/\/$/, "") || "https://nodes.amadeus.bot",
-        
+    AMADEUS_URI_PREFIX: import.meta.env.VITE_AMADEUS_URI_PREFIX || "amadeus:",
 };
